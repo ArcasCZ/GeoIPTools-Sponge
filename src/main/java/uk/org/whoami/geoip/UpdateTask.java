@@ -18,18 +18,25 @@ package uk.org.whoami.geoip;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import org.bukkit.command.CommandSender;
-import org.bukkit.scheduler.BukkitScheduler;
+import org.spongepowered.api.command.CommandSource;
+import org.spongepowered.api.scheduler.Task;
+import org.spongepowered.api.text.Text;
 import uk.org.whoami.geoip.util.Updater;
 
+/**
+ * @author Sebastian Köhler <whoami@whoami.org.uk>
+ */
+//Cleanup by Fishrock123 <Fishrock123@rocketmail.com>
 public class UpdateTask implements Runnable {
     
-    /* I can not describe how much the bukkit thread system sucks.
-     * In order to savely send messages to a user from a ASyncThread I have to
-     * schedule a SyncThread. They should all be shot. */
+    /* 
+     * I can not describe how much the bukkit thread system sucks.
+     * In order to safely send messages to a user from a ASyncThread I have to
+     * schedule a SyncThread. They should all be shot. 
+     * */
     private class SyncMessageTask implements Runnable {
         
-        private String message;
+        private final String message;
 
         public SyncMessageTask(String message) {
             this.message = message;
@@ -38,41 +45,43 @@ public class UpdateTask implements Runnable {
         @Override
         public void run() {
             try {
-                admin.sendMessage(message);
-            } catch(NullPointerException ex) {}
+                admin.sendMessage(Text.of(message));
+            } catch (NullPointerException ex) {
+            }
         } 
     }
     
-    private GeoIPTools plugin;
-    private CommandSender admin;
+    private final GeoIPTools plugin;
+    private final CommandSource admin;
     
-    public UpdateTask(GeoIPTools plugin, CommandSender admin) {
-        this.plugin = plugin;
+    public UpdateTask(CommandSource admin) {
+        this.plugin = GeoIPTools.getPlugin();
         this.admin = admin;
     }
         
     @Override
     public void run() {
-        BukkitScheduler sched = plugin.getServer().getScheduler();
+        //BukkitScheduler sched = plugin.getServer().getScheduler();
+        Task.Builder sched = Task.builder();
         
-        sched.scheduleSyncDelayedTask(plugin, new SyncMessageTask("[GeoIPTools] Starting update"));
+        sched.execute(new SyncMessageTask("[GeoIPTools] Starting update"));
         try {
             Updater.update(plugin.getSettings());
         } catch (MalformedURLException ex) {
-            sched.scheduleSyncDelayedTask(plugin, new SyncMessageTask("[GeoIPTools] Error: " + ex.getMessage()));
+            sched.execute(new SyncMessageTask("[GeoIPTools] Error: " + ex.getMessage()));
             return;
         }
-        sched.scheduleSyncDelayedTask(plugin, new SyncMessageTask("[GeoIPTools] Update finished"));
+        sched.execute(new SyncMessageTask("[GeoIPTools] Update finished"));
         
         GeoIPLookup geo = plugin.getGeoIPLookup();
-        if(geo == null) return;
+        if (geo == null) return;
         
         try {
             geo.reload();
         } catch (IOException ex) {
-            sched.scheduleSyncDelayedTask(plugin, new SyncMessageTask("[GeoIPTools] Error: " + ex.getMessage()));
+            sched.execute(new SyncMessageTask("[GeoIPTools] Error: " + ex.getMessage()));
             return;
         }
-        sched.scheduleSyncDelayedTask(plugin, new SyncMessageTask("[GeoIPTools] database reloaded"));
+        sched.execute(new SyncMessageTask("[GeoIPTools] database reloaded"));
     }
 }

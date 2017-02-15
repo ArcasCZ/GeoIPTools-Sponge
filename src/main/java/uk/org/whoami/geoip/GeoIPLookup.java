@@ -26,34 +26,21 @@ import java.net.Inet6Address;
 import java.net.InetAddress;
 
 /**
- *
  * @author Sebastian Köhler <sebkoehler@whoami.org.uk>
  */
+// Cleanup by Fishrock123 <Fishrock123@rocketmail.com>
 public class GeoIPLookup {
 
-    /**
-     * Bitmask for country database
-     */
-    public final static int COUNTRYDATABASE = 100;
-
-    /**
-     * Bitmask for city database
-     */
-    public final static int CITYDATABASE = 200;
-
-    /**
-     * Bitmask for IPv6 database
-     */
-    public final static int IPV6DATABASE = 300;
-
-    private LookupService geo = null;
+    private LookupService geocities = null;
+    private LookupService geocountries = null;
     private LookupService geov6 = null;
     private Settings settings;
-    private int type;
 
     GeoIPLookup(Settings settings) throws IOException {
-        type = -1;
         this.settings = settings;
+        this.geocountries = new LookupService(settings.getCountryDatabasePath(),LookupService.GEOIP_MEMORY_CACHE);
+        this.geov6 = new LookupService(settings.getIPv6DatabasePath(),LookupService.GEOIP_MEMORY_CACHE);
+        this.geocities = new LookupService(settings.getCityDatabasePath(),LookupService.GEOIP_MEMORY_CACHE);
     }
 
     /**
@@ -63,16 +50,16 @@ public class GeoIPLookup {
      * @return The country
      */
     public synchronized Country getCountry(InetAddress inet) {
-        if(inet instanceof Inet4Address) {
-            if(geo != null) {
-                return geo.getCountry(inet);
+        if (inet instanceof Inet4Address) {
+            if (geocountries != null) {
+                return geocountries.getCountry(inet);
             } else {
                 ConsoleLogger.info("Uninitialised LookupService");
                 return new Country("--", "N/A");
             }
         }
-        if(inet instanceof Inet6Address) {
-            if(geov6 != null) {
+        if (inet instanceof Inet6Address) {
+            if (geov6 != null) {
                 return geov6.getCountryV6(inet);
             } else {
                 ConsoleLogger.info("Uninitialised IPv6 LookupService");
@@ -92,64 +79,45 @@ public class GeoIPLookup {
      * @return Location or null if the city database was not initialised
      */
     public synchronized Location getLocation(InetAddress inet) {
-        if(inet instanceof Inet4Address) {
-            if(geo != null) {
-                return geo.getLocation(inet);
+        if (inet instanceof Inet4Address) {
+            if (geocities != null) {
+                return geocities.getLocation(inet);
             } else {
                 ConsoleLogger.info("Uninitialised LookupService");
             }
-        } else if(inet instanceof Inet6Address) {
+        } else if (inet instanceof Inet6Address) {
             ConsoleLogger.info("IPv6 is not supported for getLocation");
         }
         return null;
     }
 
-    synchronized void initCountry() throws IOException {
-        if(type == -1) {
-            geo = new LookupService(settings.getCountryDatabasePath(),LookupService.GEOIP_MEMORY_CACHE);
-            type = COUNTRYDATABASE;
-        }
-    }
-
-    synchronized void initCity() throws IOException {
-        if(type == COUNTRYDATABASE || type == -1) {
-            if(type != -1) {
-                geo.close();
-            }
-            geo = new LookupService(settings.getCityDatabasePath(),LookupService.GEOIP_MEMORY_CACHE);
-            type = CITYDATABASE;
-        }
-    }
-
-    synchronized void initIPv6() throws IOException {
-        if(geov6 == null) {
-            geov6 = new LookupService(settings.getIPv6DatabasePath(),LookupService.GEOIP_MEMORY_CACHE);
-        }
-    }
-    
     synchronized void reload() throws IOException {
-        if(geo != null) {
-            geo.close();
-            if(type == COUNTRYDATABASE) {
-                geo = new LookupService(settings.getCountryDatabasePath(),LookupService.GEOIP_MEMORY_CACHE);
-            } else {
-                geo = new LookupService(settings.getCityDatabasePath(),LookupService.GEOIP_MEMORY_CACHE);
-            }
+        if (geocities != null) {
+            geocities.close();
+            geocities = new LookupService(settings.getCityDatabasePath(),LookupService.GEOIP_MEMORY_CACHE);
         }
-        if(geov6 != null) {
+        if (geov6 != null) {
             geov6.close();
             geov6 = new LookupService(settings.getIPv6DatabasePath(),LookupService.GEOIP_MEMORY_CACHE);
+        }
+        if(geocountries != null) {
+            geocountries.close();
+            geocountries = new LookupService(settings.getCountryDatabasePath(),LookupService.GEOIP_MEMORY_CACHE);
         }
     }
 
     synchronized void close() {
-        if(geo != null) {
-            geo.close();
-            geo = null;
+        if (geocities != null) {
+            geocities.close();
+            geocities = null;
         }
-        if(geov6 != null) {
+        if (geov6 != null) {
             geov6.close();
             geov6 = null;
+        }
+        if (geocountries != null) {
+            geocountries.close();
+            geocountries = null;
         }
     }
 }

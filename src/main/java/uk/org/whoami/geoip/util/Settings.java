@@ -65,16 +65,16 @@ public class Settings {
                 plugin.getConfigPath().createNewFile();
                 config = loader.load();
 
-                config.getNode("URL.IPv6Database").setValue("http://geolite.maxmind.com/download/geoip/database/GeoIPv6.dat.gz");
-                config.getNode("URL.CityDatabase").setValue("http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz");
-                config.getNode("URL.CountryDatabase").setValue("http://geolite.maxmind.com/download/geoip/database/GeoLiteCountry/GeoIP.dat.gz");
-                config.getNode("Path.IPv6Database").setValue(this.IPV6DATABASEBATH);                
-                config.getNode("Path.cityDatabase").setValue(this.CITYDATABASEPATH);
-                config.getNode("Path.countryDatabase").setValue(this.COUNTRYDATABASEPATH);
+                config.getNode("URL", "IPv6Database").setValue("http://geolite.maxmind.com/download/geoip/database/GeoIPv6.dat.gz");
+                config.getNode("URL", "CityDatabase").setValue("http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz");
+                config.getNode("URL", "CountryDatabase").setValue("http://geolite.maxmind.com/download/geoip/database/GeoLiteCountry/GeoIP.dat.gz");
+                config.getNode("Path", "IPv6Database").setValue(this.IPV6DATABASEBATH);                
+                config.getNode("Path", "cityDatabase").setValue(this.CITYDATABASEPATH);
+                config.getNode("Path", "countryDatabase").setValue(this.COUNTRYDATABASEPATH);
                 
-                config.getNode("Update.disabled").setValue(false);
-                config.getNode("Update.lastUpdated").setValue(0);
-                config.getNode("Update.daysBetweenUpdates").setValue(10);
+                config.getNode("Update", "disabled").setValue(false);
+                config.getNode("Update", "lastUpdated").setValue(0);
+                config.getNode("Update", "daysBetweenUpdates").setValue(10);
                 
                 loader.save(config);
             }
@@ -110,56 +110,46 @@ public class Settings {
     }
     
     public boolean isUpdaterDisabled() {
-        String key = "Update.disabled";
-        return config.getNode(key).getBoolean(false);
+        return config.getNode("Update", "disabled").getBoolean(false);
     }
 
     public void setLastUpdated(long lastUpdated) {
-        String key = "Update.lastUpdated";
-        config.getNode(key).setValue(lastUpdated);
+        config.getNode("Update", "lastUpdated").setValue(lastUpdated);
         save();
     }
 
     public long getLastUpdated() {
-        String key = "Update.lastUpdated";
-        return config.getNode(key).getLong(0);
+        return config.getNode("Update", "lastUpdated").getLong(0);
     }
     
     public long getDaysUntilUpdate() {
-        String key = "Update.daysBetweenUpdates";
-        return config.getNode(key).getLong(10);
+        return config.getNode("Update", "daysBetweenUpdates").getLong(10);
     }
     
     public boolean shouldUpdate() {
         return (new Date().getTime() - getLastUpdated() > 86400000 * getDaysUntilUpdate());
     }
     public String getIPv6DatabaseURL() {
-        String key = "URL.IPv6Database";
-        return config.getNode(key).getString("http://geolite.maxmind.com/download/geoip/database/GeoIPv6.dat.gz");
+        return config.getNode("URL", "IPv6Database").getString("http://geolite.maxmind.com/download/geoip/database/GeoIPv6.dat.gz");
     }
 
     public String getCityDatabaseURL() {
-        String key = "URL.CityDatabase";
-        return config.getNode(key).getString("http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz");
+        return config.getNode("URL", "CityDatabase").getString("http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz");
     }
 
     public String getCountryDatabaseURL() {
-        String key = "URL.CountryDatabase";
-        return config.getNode(key).getString("http://geolite.maxmind.com/download/geoip/database/GeoLiteCountry/GeoIP.dat.gz");
+        return config.getNode("URL", "CountryDatabase").getString("http://geolite.maxmind.com/download/geoip/database/GeoLiteCountry/GeoIP.dat.gz");
     }
 
     public String getIPv6DatabasePath() {
-        String key = "Path.IPv6Database";
-        return (plugin.getConfigDir().toString() + File.separator + config.getNode(key).getString(this.IPV6DATABASEBATH)).replace("\\.\\","\\");
+        return (plugin.getConfigDir().toString() + File.separator + config.getNode("Path", "IPv6Database").getString(this.IPV6DATABASEBATH)).replace("\\.\\","\\");
     }
 
     public String getCityDatabasePath() {
-        String key = "Path.cityDatabase";
-        return (plugin.getConfigDir().toString() + File.separator + config.getNode(key).getString(this.CITYDATABASEPATH)).replace("\\.\\","\\");
+        return (plugin.getConfigDir().toString() + File.separator + config.getNode("Path", "cityDatabase").getString(this.CITYDATABASEPATH)).replace("\\.\\","\\");
     }
 
     public String getCountryDatabasePath() {
-        String key = "Path.countryDatabase";
-        return (plugin.getConfigDir().toString() + File.separator + config.getNode(key).getString(this.COUNTRYDATABASEPATH)).replace("\\.\\","\\");
+        return (plugin.getConfigDir().toString() + File.separator + config.getNode("Path", "countryDatabase").getString(this.COUNTRYDATABASEPATH)).replace("\\.\\","\\");
     }
 }

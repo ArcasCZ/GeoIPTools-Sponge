@@ -63,7 +63,6 @@ public class Settings {
         try {
              if (firstRun){
                 plugin.getConfigPath().createNewFile();
-                plugin.getLogger().debug(plugin.getConfigPath().toString());
                 config = loader.load();
 
                 config.getNode("URL.IPv6Database").setValue("http://geolite.maxmind.com/download/geoip/database/GeoIPv6.dat.gz");
